@@ -10,8 +10,8 @@ It's basicly a Watchdog. In go. Watchdoggo.
 * [ ] Log more information
 * [ ] Log level
 * [ ] Watch many processes ?
-* [ ] Use systemctl
-* [ ] Use service
-* [ ] Let choose over which system to use
+* [X] Use systemctl
+* [X] Use service
+* [X] Let choose over which system to use
 * [ ] Split code into packages
 * [ ] More to come
