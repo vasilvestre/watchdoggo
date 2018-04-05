@@ -1,4 +1,5 @@
 {
   "ProcessName": "yes",
-  "RetryEvery": 2
+  "Method":"systemctl",
+  "RetryEvery": 5
 }
