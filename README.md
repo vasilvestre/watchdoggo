@@ -13,4 +13,5 @@ It's basicly a Watchdog. In go. Watchdoggo.
 * [ ] Use systemctl
 * [ ] Use service
 * [ ] Let choose over which system to use
+* [ ] Split code into packages
 * [ ] More to come
