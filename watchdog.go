@@ -13,10 +13,11 @@ import (
 )
 
 const maxSize = datasize.KB
+var configuration = Configuration{}
 
 func check(err error) {
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln(fmt.Sprintf("Fatal error : %s",err.Error()))
 		os.Exit(2)
 	}
 }
@@ -28,29 +29,54 @@ func main() {
 }
 
 func launchWatchdog(logFile *os.File) {
-	configuration := getConfiguration()
-	processName := configuration.ProcessName
+	configuration = getConfiguration()
 	tick := time.Tick(time.Duration(configuration.RetryEvery) * time.Second)
 	for {
 		logFile = logRotate(logFile)
 		configuration = checkConfiguration(configuration)
 		select {
-		case <- tick:
-			keepAliveProcess(processName)
+		case <-tick:
+			keepAliveProcess()
 		}
 	}
 }
 
-func keepAliveProcess(processName string) {
-	out, err := exec.Command("bash", "-c", "ps cax | grep -v grep | grep " + processName + " | awk '{print $1}'").Output()
+func keepAliveProcess() {
+	out, err := exec.Command("bash", "-c", "ps cax | grep -v grep | grep "+configuration.ProcessName+" | awk '{print $1}'").Output()
 	check(err)
-	pid := strings.Replace(string(out), " ","",-1)
+	pid := strings.Replace(string(out), " ", "", -1)
 	if len(pid) < 1 {
 		log.Println("Service coupé, redémarrage en cours")
-		exec.Command("bash","-c",processName).Start()
+		launchProcess()
 	} else {
 		log.Println("Service en cours")
 	}
+}
+
+func launchProcess(){
+	var err error = nil
+	method := configuration.Method
+	switch configuration.Method {
+	case "bin":
+		err = exec.Command("bash", "-c", configuration.ProcessName).Start()
+	case "systemctl":
+		out, _ := exec.Command(method,"status",configuration.ProcessName).Output()
+		if strings.Contains(string(out),"not-found") {
+			log.Println("Method used isn't compatible with process. Retry assuming it's a bin..")
+			err = exec.Command("bash", "-c", configuration.ProcessName).Start()
+		} else {
+			err = exec.Command(method,"start",configuration.ProcessName).Run()
+		}
+	case "service":
+		out, _ := exec.Command(method,configuration.ProcessName,"status").Output()
+		if strings.Contains(string(out),"unrecognized") {
+			log.Println("Method used isn't compatible with process. Retry assuming it's a bin..")
+			err = exec.Command("bash", "-c", configuration.ProcessName).Start()
+		} else {
+			err = exec.Command(method,configuration.ProcessName,"start").Run()
+		}
+	}
+	check(err)
 }
 
 func checkConfiguration(configuration Configuration) Configuration {
@@ -61,6 +87,9 @@ func checkConfiguration(configuration Configuration) Configuration {
 		}
 		if configuration.RetryEvery != getConfiguration().RetryEvery {
 			message += "la fréquence de rafraichissement est devenu " + strconv.Itoa(getConfiguration().RetryEvery)
+		}
+		if configuration.Method != getConfiguration().Method {
+			message += "la méthode de démarrage est devenu " + getConfiguration().Method
 		}
 		log.Println(message)
 	}
@@ -74,13 +103,13 @@ func getConfiguration() Configuration {
 	return configuration
 }
 
-func createLog() *os.File{
+func createLog() *os.File {
 	if _, err := os.Stat("./log/"); os.IsNotExist(err) {
-		os.Mkdir("./log/",0777)
+		os.Mkdir("./log/", 0777)
 	}
 	fileName := getLogName()
-	filePathAndName := fmt.Sprintf("./log/%s",fileName)
-	file, _ := os.OpenFile(filePathAndName,os.O_APPEND|os.O_CREATE|os.O_RDWR,0666)
+	filePathAndName := fmt.Sprintf("./log/%s", fileName)
+	file, _ := os.OpenFile(filePathAndName, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 	log.SetOutput(file)
 	return file
 }
@@ -90,8 +119,8 @@ func logRotate(logFile *os.File) *os.File {
 	check(err)
 	counterHistory := 1
 	if fileInfo.Size() > int64(maxSize) {
-		fileName := strings.Replace(fileInfo.Name(),".log","",-1)
-		os.Rename(fmt.Sprintf("./log/%s",fileInfo.Name()),fmt.Sprintf("./log/%s.%d.log",fileName,counterHistory))
+		fileName := strings.Replace(fileInfo.Name(), ".log", "", -1)
+		os.Rename(fmt.Sprintf("./log/%s", fileInfo.Name()), fmt.Sprintf("./log/%s.%d.log", fileName, counterHistory))
 		logFile.Close()
 		counterHistory++
 		return createLog()
@@ -102,10 +131,11 @@ func logRotate(logFile *os.File) *os.File {
 func getLogName() string {
 	actualDateFormat := "2006_01_02"
 	actualDate := time.Now().UTC().Format(actualDateFormat)
-	return fmt.Sprintf("history_%s.log",actualDate)
+	return fmt.Sprintf("history_%s.log", actualDate)
 }
 
 type Configuration struct {
 	ProcessName string
-	RetryEvery int
+	RetryEvery  int
+	Method string
 }
