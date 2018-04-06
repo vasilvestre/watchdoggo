@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+const LogWarning = "WARNING"
+const LogInfo = "INFO"
+const LogFatal = "FATAL"
+
 var logFile = CreateLog()
 
 func CreateLog() *os.File {
@@ -36,7 +40,24 @@ func LogRotate(logFile *os.File) *os.File {
 }
 
 func GetLogName() string {
-	actualDateFormat := "2006_01_02"
+	actualDateFormat := "2006_01_02_15_04"
 	actualDate := time.Now().UTC().Format(actualDateFormat)
 	return fmt.Sprintf("history_%s.log", actualDate)
+}
+
+func WriteLog(message string, level string) {
+	log.Println(fmt.Sprintf("%s : %s",level, message))
+	line := LogLine{}
+	line.Level = level
+	line.Message = message
+	actualDateFormat := "2006_01_02_15_04_05"
+	actualDate := time.Now().UTC().Format(actualDateFormat)
+	db := getDatabase()
+	err := db.Write("log_line",fmt.Sprintf("line_%s", actualDate),line)
+	Check(err)
+}
+
+type LogLine struct {
+	Message string
+	Level  string
 }

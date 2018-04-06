@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"strconv"
-	"log"
 	"github.com/tkanos/gonfig"
 	"github.com/c2h5oh/datasize"
 )
 
-const maxSize = datasize.KB
+const maxSize = 10 * datasize.KB
 var configuration = Configuration{}
 
 func CheckConfiguration(configuration Configuration) Configuration {
@@ -23,7 +22,7 @@ func CheckConfiguration(configuration Configuration) Configuration {
 		if configuration.Method != GetConfiguration().Method {
 			message += fmt.Sprintf("starting method changed for %s",GetConfiguration().Method)
 		}
-		log.Println(message)
+		WriteLog(message,LogWarning)
 	}
 	return GetConfiguration()
 }
