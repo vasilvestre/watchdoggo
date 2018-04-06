@@ -4,13 +4,13 @@ import (
 	"time"
 	"os/exec"
 	"strings"
-	"log"
 	"fmt"
 )
 
 func LaunchWatchdog() {
 	configuration = GetConfiguration()
 	tick := time.Tick(time.Duration(configuration.RetryEvery) * time.Second)
+	KeepAliveProcess()
 	for {
 		logFile = LogRotate(logFile)
 		configuration = CheckConfiguration(configuration)
@@ -27,10 +27,10 @@ func KeepAliveProcess() {
 	Check(err)
 	pid := strings.Replace(string(out), " ", "", -1)
 	if len(pid) < 1 {
-		log.Println("Process stopped. Attempt to reload.")
+		WriteLog("Process stopped. Attempt to reload.", LogWarning)
 		LaunchProcess()
 	} else {
-		log.Println("Process is running fine.")
+		WriteLog("Process is running fine.", LogInfo)
 	}
 }
 
@@ -44,7 +44,7 @@ func LaunchProcess(){
 	case "systemctl":
 		out, _ := exec.Command(method,"status",configuration.ProcessName).Output()
 		if strings.Contains(string(out),"not-found") {
-			log.Println("Method used isn't compatible with process. Retry assuming it's a bin..")
+			WriteLog("Method used isn't compatible with process. Retry assuming it's a bin..", LogWarning)
 			err = exec.Command("bash", "-c", configuration.ProcessName).Start()
 		} else {
 			err = exec.Command(method,"start",configuration.ProcessName).Run()
@@ -52,7 +52,7 @@ func LaunchProcess(){
 	case "service":
 		out, _ := exec.Command(method,configuration.ProcessName,"status").Output()
 		if strings.Contains(string(out),"unrecognized") {
-			log.Println("Method used isn't compatible with process. Retry assuming it's a bin..")
+			WriteLog("Method used isn't compatible with process. Retry assuming it's a bin..", LogWarning)
 			err = exec.Command("bash", "-c", configuration.ProcessName).Start()
 		} else {
 			err = exec.Command(method,configuration.ProcessName,"start").Run()
