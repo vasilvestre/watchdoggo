@@ -16,3 +16,8 @@ It's basicly a Watchdog. In go. Watchdoggo.
 * [x] Split code into files
 * [ ] Watch many processes ?
 * [ ] More to come
+
+# Installation
+
+go get github.com/vasilvestre/watchdoggo/
+go get -d ./...
