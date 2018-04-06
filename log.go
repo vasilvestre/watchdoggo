@@ -40,18 +40,20 @@ func LogRotate(logFile *os.File) *os.File {
 }
 
 func GetLogName() string {
+	location,_ := time.LoadLocation("Europe/Rome")
 	actualDateFormat := "2006_01_02_15_04"
-	actualDate := time.Now().UTC().Format(actualDateFormat)
+	actualDate := time.Now().In(location).Format(actualDateFormat)
 	return fmt.Sprintf("history_%s.log", actualDate)
 }
 
 func WriteLog(message string, level string) {
+	location,_ := time.LoadLocation("Europe/Rome")
 	log.Println(fmt.Sprintf("%s : %s",level, message))
 	line := LogLine{}
 	line.Level = level
 	line.Message = message
 	actualDateFormat := "2006_01_02_15_04_05"
-	actualDate := time.Now().UTC().Format(actualDateFormat)
+	actualDate := time.Now().In(location).Format(actualDateFormat)
 	db := getDatabase()
 	err := db.Write("log_line",fmt.Sprintf("line_%s", actualDate),line)
 	Check(err)
