@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var logFile = CreateLog()
+
 func CreateLog() *os.File {
 	if _, err := os.Stat("./log/"); os.IsNotExist(err) {
 		os.Mkdir("./log/", 0777)
