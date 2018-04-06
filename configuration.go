@@ -29,7 +29,7 @@ func CheckConfiguration(configuration Configuration) Configuration {
 
 func GetConfiguration() Configuration {
 	configuration := Configuration{}
-	err := gonfig.GetConf("watchdog-go.json", &configuration)
+	err := gonfig.GetConf("configuration.json", &configuration)
 	Check(err)
 	return configuration
 }
@@ -38,4 +38,5 @@ type Configuration struct {
 	ProcessName string
 	RetryEvery  int
 	Method string
+	MinimalLogLevel string
 }
