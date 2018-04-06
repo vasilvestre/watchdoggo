@@ -7,11 +7,12 @@ It's basicly a Watchdog. In go. Watchdoggo.
 # Features
 * [x] Hot-reload configuration
 * [x] Log rotation
-* [ ] Log more information
-* [ ] Log level
+* [x] Log more information
+* [x] Log level
+* [ ] Choose log level
 * [ ] Watch many processes ?
-* [X] Use systemctl
-* [X] Use service
-* [X] Let choose over which system to use
-* [ ] Split code into packages
+* [x] Use systemctl
+* [x] Use service
+* [x] Let choose over which system to use
+* [x] Split code into files
 * [ ] More to come
