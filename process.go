@@ -4,7 +4,6 @@ import (
 	"time"
 	"os/exec"
 	"strings"
-	"fmt"
 )
 
 func LaunchWatchdog() {
@@ -58,5 +57,6 @@ func LaunchProcess(){
 		}
 	}
 	Check(err)
+	WriteLog("Process launched successfully.",LogWarning)
 }
 

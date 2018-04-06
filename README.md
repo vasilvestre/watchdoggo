@@ -9,10 +9,10 @@ It's basicly a Watchdog. In go. Watchdoggo.
 * [x] Log rotation
 * [x] Log more information
 * [x] Log level
-* [ ] Choose log level
-* [ ] Watch many processes ?
+* [x] Choose log level
 * [x] Use systemctl
 * [x] Use service
 * [x] Let choose over which system to use
 * [x] Split code into files
+* [ ] Watch many processes ?
 * [ ] More to come
