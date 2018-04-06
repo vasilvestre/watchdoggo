@@ -14,5 +14,5 @@
 .glide/
 /log/
 .idea/
-watchdog-go.json
+configuration.json
 /database/

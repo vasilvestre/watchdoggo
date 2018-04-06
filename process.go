@@ -4,7 +4,6 @@ import (
 	"time"
 	"os/exec"
 	"strings"
-	"fmt"
 )
 
 func LaunchWatchdog() {
@@ -39,7 +38,6 @@ func LaunchProcess(){
 	method := configuration.Method
 	switch configuration.Method {
 	case "bin":
-		fmt.Println("slt")
 		err = exec.Command("bash", "-c", configuration.ProcessName).Start()
 	case "systemctl":
 		out, _ := exec.Command(method,"status",configuration.ProcessName).Output()
@@ -59,5 +57,6 @@ func LaunchProcess(){
 		}
 	}
 	Check(err)
+	WriteLog("Process launched successfully.",LogWarning)
 }
 

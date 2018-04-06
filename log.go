@@ -8,11 +8,12 @@ import (
 	"time"
 )
 
-const LogWarning = "WARNING"
 const LogInfo = "INFO"
+const LogWarning = "WARNING"
 const LogFatal = "FATAL"
 
 var logFile = CreateLog()
+var logLevel = make(map[string]int)
 
 func CreateLog() *os.File {
 	if _, err := os.Stat("./log/"); os.IsNotExist(err) {
@@ -40,21 +41,36 @@ func LogRotate(logFile *os.File) *os.File {
 }
 
 func GetLogName() string {
+	location,_ := time.LoadLocation("Europe/Rome")
 	actualDateFormat := "2006_01_02_15_04"
-	actualDate := time.Now().UTC().Format(actualDateFormat)
+	actualDate := time.Now().In(location).Format(actualDateFormat)
 	return fmt.Sprintf("history_%s.log", actualDate)
 }
 
 func WriteLog(message string, level string) {
-	log.Println(fmt.Sprintf("%s : %s",level, message))
-	line := LogLine{}
-	line.Level = level
-	line.Message = message
-	actualDateFormat := "2006_01_02_15_04_05"
-	actualDate := time.Now().UTC().Format(actualDateFormat)
-	db := getDatabase()
-	err := db.Write("log_line",fmt.Sprintf("line_%s", actualDate),line)
-	Check(err)
+	if CanBeLogged(level) {
+		location,_ := time.LoadLocation("Europe/Rome")
+		log.Println(fmt.Sprintf("%s : %s",level, message))
+		line := LogLine{}
+		line.Level = level
+		line.Message = message
+		actualDateFormat := "2006_01_02_15_04_05"
+		actualDate := time.Now().In(location).Format(actualDateFormat)
+		db := getDatabase()
+		err := db.Write("log_line",fmt.Sprintf("line_%s", actualDate),line)
+		Check(err)
+	}
+}
+
+func CanBeLogged(level string) bool {
+	minimumLevel := configuration.MinimalLogLevel
+	logLevel[LogInfo] = 1
+	logLevel[LogWarning] = 2
+	logLevel[LogFatal] = 3
+	if logLevel[level] >= logLevel[minimumLevel] {
+		return true
+	}
+	return false
 }
 
 type LogLine struct {
