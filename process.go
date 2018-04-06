@@ -39,7 +39,6 @@ func LaunchProcess(){
 	method := configuration.Method
 	switch configuration.Method {
 	case "bin":
-		fmt.Println("slt")
 		err = exec.Command("bash", "-c", configuration.ProcessName).Start()
 	case "systemctl":
 		out, _ := exec.Command(method,"status",configuration.ProcessName).Output()
