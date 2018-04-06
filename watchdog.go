@@ -34,6 +34,7 @@ func launchWatchdog(logFile *os.File) {
 	for {
 		logFile = logRotate(logFile)
 		configuration = checkConfiguration(configuration)
+		tick = time.Tick(time.Duration(configuration.RetryEvery) * time.Second)
 		select {
 		case <-tick:
 			keepAliveProcess()
@@ -46,10 +47,10 @@ func keepAliveProcess() {
 	check(err)
 	pid := strings.Replace(string(out), " ", "", -1)
 	if len(pid) < 1 {
-		log.Println("Service coupé, redémarrage en cours")
+		log.Println("Process stopped. Attempt to reload.")
 		launchProcess()
 	} else {
-		log.Println("Service en cours")
+		log.Println("Process is running fine.")
 	}
 }
 
@@ -60,7 +61,8 @@ func launchProcess(){
 	case "bin":
 		err = exec.Command("bash", "-c", configuration.ProcessName).Start()
 	case "systemctl":
-		out, _ := exec.Command(method,"status",configuration.ProcessName).Output()
+		out, err := exec.Command(method,"status",configuration.ProcessName).Output()
+		check(err)
 		if strings.Contains(string(out),"not-found") {
 			log.Println("Method used isn't compatible with process. Retry assuming it's a bin..")
 			err = exec.Command("bash", "-c", configuration.ProcessName).Start()
@@ -68,7 +70,8 @@ func launchProcess(){
 			err = exec.Command(method,"start",configuration.ProcessName).Run()
 		}
 	case "service":
-		out, _ := exec.Command(method,configuration.ProcessName,"status").Output()
+		out, err := exec.Command(method,configuration.ProcessName,"status").Output()
+		check(err)
 		if strings.Contains(string(out),"unrecognized") {
 			log.Println("Method used isn't compatible with process. Retry assuming it's a bin..")
 			err = exec.Command("bash", "-c", configuration.ProcessName).Start()
@@ -81,15 +84,15 @@ func launchProcess(){
 
 func checkConfiguration(configuration Configuration) Configuration {
 	if configuration != getConfiguration() {
-		message := "Changement de la configuration : "
+		message := "Configuration changed : "
 		if configuration.ProcessName != getConfiguration().ProcessName {
-			message += "le processus à surveiller est devenu " + getConfiguration().ProcessName
+			message += fmt.Sprintf("process to watch changed for %s",getConfiguration().ProcessName)
 		}
 		if configuration.RetryEvery != getConfiguration().RetryEvery {
-			message += "la fréquence de rafraichissement est devenu " + strconv.Itoa(getConfiguration().RetryEvery)
+			message += fmt.Sprintf("refresh frequency changed for %s",strconv.Itoa(getConfiguration().RetryEvery))
 		}
 		if configuration.Method != getConfiguration().Method {
-			message += "la méthode de démarrage est devenu " + getConfiguration().Method
+			message += fmt.Sprintf("starting method changed for %s",getConfiguration().Method)
 		}
 		log.Println(message)
 	}
@@ -101,37 +104,6 @@ func getConfiguration() Configuration {
 	err := gonfig.GetConf("watchdog-go.json", &configuration)
 	check(err)
 	return configuration
-}
-
-func createLog() *os.File {
-	if _, err := os.Stat("./log/"); os.IsNotExist(err) {
-		os.Mkdir("./log/", 0777)
-	}
-	fileName := getLogName()
-	filePathAndName := fmt.Sprintf("./log/%s", fileName)
-	file, _ := os.OpenFile(filePathAndName, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
-	log.SetOutput(file)
-	return file
-}
-
-func logRotate(logFile *os.File) *os.File {
-	fileInfo, err := logFile.Stat()
-	check(err)
-	counterHistory := 1
-	if fileInfo.Size() > int64(maxSize) {
-		fileName := strings.Replace(fileInfo.Name(), ".log", "", -1)
-		os.Rename(fmt.Sprintf("./log/%s", fileInfo.Name()), fmt.Sprintf("./log/%s.%d.log", fileName, counterHistory))
-		logFile.Close()
-		counterHistory++
-		return createLog()
-	}
-	return logFile
-}
-
-func getLogName() string {
-	actualDateFormat := "2006_01_02"
-	actualDate := time.Now().UTC().Format(actualDateFormat)
-	return fmt.Sprintf("history_%s.log", actualDate)
 }
 
 type Configuration struct {
