@@ -1,4 +1,4 @@
-package main
+package code
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ func CheckConfiguration(configuration Configuration) Configuration {
 
 func GetConfiguration() Configuration {
 	configuration := Configuration{}
-	err := gonfig.GetConf("configuration.json", &configuration)
+	err := gonfig.GetConf("./configuration/configuration.json", &configuration)
 	Check(err)
 	return configuration
 }
