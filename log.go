@@ -54,6 +54,7 @@ func WriteLog(message string, level string) {
 		line := LogLine{}
 		line.Level = level
 		line.Message = message
+		line.Uptime = uptime
 		actualDateFormat := "2006_01_02_15_04_05"
 		actualDate := time.Now().In(location).Format(actualDateFormat)
 		db := getDatabase()
@@ -76,4 +77,5 @@ func CanBeLogged(level string) bool {
 type LogLine struct {
 	Message string
 	Level  string
+	Uptime int
 }

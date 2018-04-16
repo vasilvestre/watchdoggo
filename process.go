@@ -4,7 +4,11 @@ import (
 	"time"
 	"os/exec"
 	"strings"
+	"fmt"
+	"strconv"
 )
+
+var uptime = 0
 
 func LaunchWatchdog() {
 	configuration = GetConfiguration()
@@ -27,9 +31,11 @@ func KeepAliveProcess() {
 	pid := strings.Replace(string(out), " ", "", -1)
 	if len(pid) < 1 {
 		WriteLog("Process stopped. Attempt to reload.", LogWarning)
+		uptime = 0
 		LaunchProcess()
 	} else {
-		WriteLog("Process is running fine.", LogInfo)
+		WriteLog(fmt.Sprintf("Process is running fine. %s seconds uptime.",strconv.Itoa(uptime)), LogInfo)
+		uptime += configuration.RetryEvery
 	}
 }
 
