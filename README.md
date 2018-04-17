@@ -14,6 +14,7 @@ It's basicly a Watchdog. In go. Watchdoggo.
 * [x] Use service
 * [x] Let choose over which system to use
 * [x] Split code into files
+* [x] Trace uptime
 * [ ] Watch many processes ?
 * [ ] More to come
 

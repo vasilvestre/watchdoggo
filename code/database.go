@@ -1,4 +1,4 @@
-package main
+package code
 
 import "github.com/nanobox-io/golang-scribble"
 

@@ -1,5 +1,8 @@
 package main
+import (
+	sources "./code"
+)
 
 func main() {
-	LaunchWatchdog()
+	sources.LaunchWatchdog()
 }

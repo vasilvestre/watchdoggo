@@ -12,7 +12,13 @@
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
+
+# Project generation
 /log/
-.idea/
-configuration.json
 /database/
+
+# Project configuration
+configuration.json
+
+# User IDE
+.idea/
